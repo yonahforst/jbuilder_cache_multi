@@ -2,7 +2,7 @@
 
 Adds cache_collection! method, useful when iterating over a collection. The main advantage is that it will try to use fetch_multi from rails (if available in rails and supported by the cache) to query the cache. 
 
-fetch_muti uses read_multi (supported by memcache) to retreive multiple items in one go. This means less queries to the cache == faster responses. If items are not found, they are writen to the cache (individualy, at the moment).
+fetch_muti uses read_multi (supported by memcache) to retreive multiple items in one go. This means less queries to the cache == faster responses. If items are not found, they are writen to the cache (individualy. memcache doesn't support writing items in batch...yet).
 
 ## Installation
 
@@ -31,13 +31,27 @@ Examples:
 	  json.partial! 'person', :person => person
 	end
 
-Or with optional key
+	# Or with optional key
 
 	json.cache_collection! @people, expires_in: 10.minutes, key: 'v1' do |person|
 	  json.partial! 'person', :person => person
 	end
   
-  
+NOTE: If the items in your collection don't change frequently, it might be better to cache the entire collection like this:
+
+	json.cache! @people do
+	  json.partial! 'person', collection: @people, as: :person
+	end
+
+Or you can use a combination of both!
+This will cache the entire collection and if a single item changes, it will read the cache (with multi_read) for all unchanged items and regenerate the changed item(s).
+
+	json.cache! @people do
+	  json.cache_collection! @people do |person|
+	    json.partial! 'person', :person => person
+	  end
+	end
+
 ## Todo
 
 - Add support for passing a partial name as an argument (e.g. json.cache_collection! @people, partial: 'person') or maybe even just "json.cache_collection! @people" and infer the partial name from the collection...
