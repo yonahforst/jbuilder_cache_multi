@@ -45,7 +45,7 @@ NOTE: If the items in your collection don't change frequently, it might be bette
 	end
 
 Or you can use a combination of both!
-This will cache the entire collection and if a single item changes, it will read the cache (with multi_read) for all unchanged items and regenerate the changed item(s).
+This will cache the entire collection and if a single item changes, it will read the cache (with read_multi) for all unchanged items and regenerate the changed item(s).
 
 	json.cache! @people do
 	  json.cache_collection! @people do |person|
