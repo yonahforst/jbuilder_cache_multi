@@ -1,8 +1,10 @@
 # JbuilderCacheMulti
 
-Adds cache_collection! method, useful when iterating over a collection. The main advantage is that it will try to use fetch_multi from rails (if available in rails and supported by the cache) to query the cache. 
+Useful when you need to retrieve fragments for a collection of objects from the cache. This plugin gives you method called 'cache_collection!' which uses fetch_multi (new in Rails 4.1) to retrieve multiple keys in a single go.
 
-fetch_muti uses read_multi (supported by memcache) to retreive multiple items in one go. This means less queries to the cache == faster responses. If items are not found, they are writen to the cache (individualy. memcache doesn't support writing items in batch...yet).
+This means less queries to the cache == faster responses. If items are not found, they are writen to the cache (individualy. memcache doesn't support writing items in batch...yet).
+
+Tested with Rails 4.1 + Memcached + Dalli
 
 ## Installation
 
@@ -20,10 +22,9 @@ Or install it yourself as:
 
 ## Usage
 
-Caches a collection of objects using fetch_multi, if supported (otherwise iterates over the collection using fetch)
-Requires a block for each item in the array. Accepts optional 'key' attribute in options (e.g. key: 'v1').
+Renders the given block for each item in the collection. Accepts optional 'key' attribute in options (e.g. key: 'v1').
 
-Note: At the moment, does not accept the partial name as an argument #todo
+Note: At the moment, does not accept the partial name as an argument (#todo)
 
 Examples:
 
@@ -45,7 +46,7 @@ NOTE: If the items in your collection don't change frequently, it might be bette
 	end
 
 Or you can use a combination of both!
-This will cache the entire collection and if a single item changes, it will read the cache (with read_multi) for all unchanged items and regenerate the changed item(s).
+This will cache the entire collection. If a single item changes it will use read_multi to get all unchanged items and regenerate only the changed item(s).
 
 	json.cache! @people do
 	  json.cache_collection! @people do |person|
@@ -53,7 +54,7 @@ This will cache the entire collection and if a single item changes, it will read
 	  end
 	end
 	
-Last thing: If you are using a collection for the cache key, may I recommend the 'scope_cache_key' gem? (check out my fork for a rails 4 version: https://github.com/joshblour/scope_cache_key). It very quickly calculates a hash for all items in the collection (using the updated_at timestamp and ID for each item).
+Last thing: If you are using a collection for the cache key, may I recommend the 'scope_cache_key' gem? (check out my fork for a Rails 4 version: https://github.com/joshblour/scope_cache_key). It very quickly calculates a hash for all items in the collection (MD5 hash of updated_at + IDs).
 
 ## Todo
 
@@ -70,5 +71,5 @@ Last thing: If you are using a collection for the cache key, may I recommend the
 5. Create a new Pull Request
 
 ## Credit
-Loads borrowed from https://github.com/n8/multi_fetch_fragments. Thank you!
+Inspired by https://github.com/n8/multi_fetch_fragments. Thank you!
 And of course https://github.com/rails/jbuilder
