@@ -38,6 +38,7 @@ Examples:
 	end
   
 NOTE: If the items in your collection don't change frequently, it might be better to cache the entire collection like this:
+(in which case you don't need this gem)
 
 	json.cache! @people do
 	  json.partial! 'person', collection: @people, as: :person
