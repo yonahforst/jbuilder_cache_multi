@@ -46,8 +46,12 @@ Or with optional key
 
 ## Contributing
 
-1. Fork it ( https://github.com/[my-github-username]/jbuilder_cache_multi/fork )
+1. Fork it ( https://github.com/joshblour/jbuilder_cache_multi/fork )
 2. Create your feature branch (`git checkout -b my-new-feature`)
 3. Commit your changes (`git commit -am 'Add some feature'`)
 4. Push to the branch (`git push origin my-new-feature`)
 5. Create a new Pull Request
+
+## Credit
+Loads borrowed from https://github.com/n8/multi_fetch_fragments. Thank you!
+And of course https://github.com/rails/jbuilder
