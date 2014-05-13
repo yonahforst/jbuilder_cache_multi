@@ -52,6 +52,8 @@ This will cache the entire collection and if a single item changes, it will read
 	    json.partial! 'person', :person => person
 	  end
 	end
+	
+Last thing: If you are using a collection for the cache key, may I recommend the 'scope_cache_key' gem? (check out my fork for a rails 4 version: https://github.com/joshblour/scope_cache_key). It very quickly calculates a hash for all items in the collection (using the updated_at timestamp and ID for each item).
 
 ## Todo
 
