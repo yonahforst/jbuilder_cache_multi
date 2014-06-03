@@ -1,24 +1,12 @@
-appraise "rails-3-0" do
-  gem "railties",   "~> 3.0.0"
-  gem "actionpack", "~> 3.0.0"
-end
+rails_versions = ["~> 3.0.0", "~> 3.1.0", "~> 3.2.0", "~> 4.0.0", "~> 4.1.0"]
+jbuilder_versions = ["~> 1.5.0", "~> 2.0.0"]
 
-appraise "rails-3-1" do
-  gem "railties",   "~> 3.1.0"
-  gem "actionpack", "~> 3.1.0"
-end
-
-appraise "rails-3-2" do
-  gem "railties",   "~> 3.2.0"
-  gem "actionpack", "~> 3.2.0"
-end
-
-appraise "rails-4-0" do
-  gem "railties",   "~> 4.0.0"
-  gem "actionpack", "~> 4.0.0"
-end
-
-appraise "rails-4-1" do
-  gem "railties",   "~> 4.1.0"
-  gem "actionpack", "~> 4.1.0"
+rails_versions.each do |r|
+  jbuilder_versions.each do |j|
+    appraise "rails_#{r.match(/\d.*/)} jbuilder_#{j.match(/\d.*/)}" do
+      gem "railties",   r
+      gem "actionpack", r
+      gem "jbuilder", j
+    end
+  end
 end

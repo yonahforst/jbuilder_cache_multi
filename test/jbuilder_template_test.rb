@@ -3,6 +3,7 @@ require 'mocha/setup'
 require 'action_view'
 require 'action_view/testing/resolvers'
 require 'active_support/cache'
+require 'jbuilder'
 require 'jbuilder/jbuilder_template'
 require 'jbuilder_cache_multi'
 
@@ -56,7 +57,7 @@ class JbuilderTemplateTest < ActionView::TestCase
   def assert_collection_rendered(json, context = nil)
     result = MultiJson.load(json)
     result = result.fetch(context) if context
-
+    
     assert_equal 10, result.length
     assert_equal Array, result.class
     assert_equal 'post body 5',        result[4]['body']

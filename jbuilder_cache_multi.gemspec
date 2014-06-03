@@ -19,6 +19,6 @@ Gem::Specification.new do |spec|
 
   spec.required_ruby_version = '>= 1.9.3'
 
-  spec.add_dependency 'jbuilder', '~> 2.0'
+  spec.add_dependency 'jbuilder', '>= 1.5.0', '< 3'
   
 end
