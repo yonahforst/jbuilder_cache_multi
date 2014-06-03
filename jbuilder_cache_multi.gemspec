@@ -9,7 +9,7 @@ Gem::Specification.new do |spec|
   spec.authors       = ["Yonah Forst"]
   spec.email         = ["joshblour@hotmail.com"]
   spec.summary       = %q{Adds cache_collection! to jbuilder. Uses memcache fetch_multi/read_multi}
-  spec.homepage      = ""
+  spec.homepage      = "http://www.github.com/joshblour/jbuilder_cache_multi"
   spec.license       = "MIT"
 
   spec.files         = `git ls-files -z`.split("\x0")
