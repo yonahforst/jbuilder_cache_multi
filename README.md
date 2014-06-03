@@ -70,6 +70,11 @@ Last thing: If you are using a collection for the cache key, may I recommend the
 4. Push to the branch (`git push origin my-new-feature`)
 5. Create a new Pull Request
 
+## Testing
+    bundle install
+    appraisal install
+    appraisal rake test
+
 ## Credit
 Inspired by https://github.com/n8/multi_fetch_fragments. Thank you!
 And of course https://github.com/rails/jbuilder
