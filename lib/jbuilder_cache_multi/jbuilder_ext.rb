@@ -49,6 +49,7 @@ JbuilderTemplate.class_eval do
     key = options.delete(:key)
 
     collection.inject({}) do |result, item|
+      key = key.respond_to?(:call) ? key.call(item) : key
       cache_key = key ? [key, item] : item
       result[_cache_key_fetch_multi(cache_key, options)] = item
       result
