@@ -37,6 +37,12 @@ Examples:
 	json.cache_collection! @people, expires_in: 10.minutes, key: 'v1' do |person|
 	  json.partial! 'person', :person => person
 	end
+	
+	# Or with a proc as a key 
+	
+	json.cache_collection! @people, expires_in: 10.minutes, key: proc {|person| person.last_posted_at } do |person|
+      json.partial! 'person', :person => person
+    end
   
 NOTE: If the items in your collection don't change frequently, it might be better to cache the entire collection like this:
 (in which case you don't need this gem)

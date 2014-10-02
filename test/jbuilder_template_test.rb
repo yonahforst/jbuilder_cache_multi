@@ -17,6 +17,8 @@ BLOG_POST_PARTIAL = <<-JBUILDER
   end
 JBUILDER
 
+CACHE_KEY_PROC = Proc.new { |blog_post| true }
+
 BlogPost = Struct.new(:id, :body, :author_name)
 blog_authors = [ 'David Heinemeier Hansson', 'Pavel Pravosud' ].cycle
 BLOG_POST_COLLECTION = 10.times.map{ |i| BlogPost.new(i+1, "post body #{i+1}", blog_authors.next) }
@@ -74,6 +76,19 @@ class JbuilderTemplateTest < ActionView::TestCase
       end
     JBUILDER
         
+    assert_collection_rendered json
+  end
+
+  test 'renders cached array with a key specified as a proc' do
+    undef_context_methods :fragment_name_with_digest, :cache_fragment_name
+    CACHE_KEY_PROC.expects(:call)
+
+    json = render_jbuilder <<-JBUILDER
+      json.cache_collection! BLOG_POST_COLLECTION, key: CACHE_KEY_PROC do |blog_post|
+        json.partial! 'blog_post', :blog_post => blog_post
+      end
+    JBUILDER
+
     assert_collection_rendered json
   end
   
