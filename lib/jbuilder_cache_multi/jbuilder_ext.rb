@@ -27,7 +27,18 @@ JbuilderTemplate.class_eval do
     end
   end
 
-
+  # Conditionally caches a collection of objects depending in the condition given as first parameter.
+  #
+  # Example:
+  #
+  # json.cache_collection_if! do_cache?, @people, expires_in: 10.minutes do |person|
+  #   json.partial! 'person', :person => person
+  # end
+  def cache_collection_if!(condition, collection, options = {}, &block)
+    condition ?
+        cache_collection!(collection, options, &block) :
+        array!(collection, options, &block)
+  end
 
   protected
 

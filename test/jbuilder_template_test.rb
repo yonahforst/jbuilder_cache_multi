@@ -117,4 +117,30 @@ class JbuilderTemplateTest < ActionView::TestCase
     assert_collection_rendered json
   end
 
+  test 'conditionally fragment caching a JSON object' do
+    undef_context_methods :fragment_name_with_digest, :cache_fragment_name
+
+    render_jbuilder <<-JBUILDER
+      json.cache_collection_if! true, BLOG_POST_COLLECTION, key: 'cachekey' do |blog_post|
+        json.partial! 'blog_post', :blog_post => blog_post
+      end
+    JBUILDER
+
+    json = render_jbuilder <<-JBUILDER
+      json.cache_collection_if! true, BLOG_POST_COLLECTION, key: 'cachekey' do |blog_post|
+        json.test 'Miss'
+      end
+    JBUILDER
+
+    assert_collection_rendered json
+
+    json = render_jbuilder <<-JBUILDER
+      json.cache_collection_if! false, BLOG_POST_COLLECTION, key: 'cachekey' do |blog_post|
+        json.test 'Miss'
+      end
+    JBUILDER
+
+    result = MultiJson.load(json)
+    assert_equal 'Miss',        result[4]['test']
+  end
 end
