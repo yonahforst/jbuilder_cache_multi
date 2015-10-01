@@ -81,7 +81,6 @@ class JbuilderTemplateTest < ActionView::TestCase
 
   test 'renders cached array with a key specified as a proc' do
     undef_context_methods :fragment_name_with_digest, :cache_fragment_name
-    CACHE_KEY_PROC.expects(:call).times(10)
 
     json = render_jbuilder <<-JBUILDER
       json.cache_collection! BLOG_POST_COLLECTION, key: CACHE_KEY_PROC do |blog_post|
