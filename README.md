@@ -62,6 +62,12 @@ This will cache the entire collection. If a single item changes it will use read
 	
 Last thing: If you are using a collection for the cache key, may I recommend the 'scope_cache_key' gem? (check out my fork for a Rails 4 version: https://github.com/joshblour/scope_cache_key). It very quickly calculates a hash for all items in the collection (MD5 hash of updated_at + IDs).
 
+You can also conditionally cache a block by using `cache_collection_if!` like this:
+
+	json.cache_collection_if! do_cache?, @people, expires_in: 10.minutes do |person|
+	  json.partial! 'person', :person => person
+	end
+	
 ## Todo
 
 - Add support for passing a partial name as an argument (e.g. json.cache_collection! @people, partial: 'person') or maybe even just "json.cache_collection! @people" and infer the partial name from the collection...
