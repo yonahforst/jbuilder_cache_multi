@@ -117,6 +117,16 @@ class JbuilderTemplateTest < ActionView::TestCase
     assert_collection_rendered json
   end
 
+  test 'reverts to array! when collection is empty' do
+    json = render_jbuilder <<-JBUILDER
+      json.cache_collection! [] do |blog_post|
+        json.partial! 'blog_post', :blog_post => blog_post
+      end
+    JBUILDER
+    
+    assert_equal '[]', json
+  end
+
   test 'conditionally fragment caching a JSON object' do
     undef_context_methods :fragment_name_with_digest, :cache_fragment_name
 
