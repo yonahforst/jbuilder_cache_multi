@@ -1,4 +1,10 @@
 JbuilderTemplate.class_eval do
+  # Conditionally caches the collection of objects using fetch_multi. 
+  # Has the same behavior as the `cache_collection` method
+  def cache_collection_if!(condition, *args, &block)
+    condition ? cache_collection!(*args, &block) : yield
+  end
+
   # Caches a collection of objects using fetch_multi, if supported.
   # Requires a block for each item in the array. Accepts optional 'key' attribute in options (e.g. key: 'v1').
   #
