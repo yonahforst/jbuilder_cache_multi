@@ -42,6 +42,14 @@ class JbuilderTemplateTest < ActionView::TestCase
     }
   end
 
+  # Stub out a couple of methods that'll get called from cache_fragment_name
+  def view_cache_dependencies
+    []
+  end
+  def formats
+    [:json]
+  end
+
   def render_jbuilder(source)
     @rendered = []
     lookup_context.view_paths = [ActionView::FixtureResolver.new(partials.merge('test.json.jbuilder' => source))]
@@ -79,6 +87,16 @@ class JbuilderTemplateTest < ActionView::TestCase
     assert_collection_rendered json
   end
 
+  test 'allows additional options' do
+    json = render_jbuilder <<-JBUILDER
+      json.cache_collection! BLOG_POST_COLLECTION, expires_in: 1.hour do |blog_post|
+        json.partial! 'blog_post', :blog_post => blog_post
+      end
+    JBUILDER
+
+    assert_collection_rendered json
+  end
+
   test 'renders cached array with a key specified as a proc' do
     undef_context_methods :fragment_name_with_digest, :cache_fragment_name
 
@@ -90,7 +108,7 @@ class JbuilderTemplateTest < ActionView::TestCase
 
     assert_collection_rendered json
   end
-  
+
   test 'reverts to cache! if cache does not support fetch_multi' do
     undef_context_methods :fragment_name_with_digest, :cache_fragment_name
     ActiveSupport::Cache::Store.send(:undef_method, :fetch_multi) if ActiveSupport::Cache::Store.method_defined?(:fetch_multi)
@@ -103,7 +121,7 @@ class JbuilderTemplateTest < ActionView::TestCase
     
     assert_collection_rendered json
   end
-  
+
   test 'reverts to array! when controller.perform_caching is false' do
     controller.perform_caching = false
     
