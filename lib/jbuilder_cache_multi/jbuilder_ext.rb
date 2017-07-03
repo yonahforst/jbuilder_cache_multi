@@ -8,7 +8,7 @@ JbuilderTemplate.class_eval do
   #   json.partial! 'person', :person => person
   # end
   def cache_collection!(collection, options = {}, &block)
-    if @context.controller.perform_caching && !collection.empty?
+    if @context.controller.perform_caching && !collection.to_a.empty?
       keys_to_collection_map = _keys_to_collection_map(collection, options)
 
       if ::Rails.cache.respond_to?(:fetch_multi)
