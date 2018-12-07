@@ -11,9 +11,9 @@ require 'jbuilder_cache_multi'
 BLOG_POST_PARTIAL = <<-JBUILDER
   json.extract! blog_post, :id, :body
   json.author do
-    name = blog_post.author_name.split(nil, 2)
-    json.first_name name[0]
-    json.last_name  name[1]
+    first_name, last_name = blog_post.author_name.split(nil, 2)
+    json.first_name first_name
+    json.last_name last_name
   end
 JBUILDER
 
@@ -22,6 +22,13 @@ CACHE_KEY_PROC = Proc.new { |blog_post| blog_post.id }
 BlogPost = Struct.new(:id, :body, :author_name)
 blog_authors = [ 'David Heinemeier Hansson', 'Pavel Pravosud' ].cycle
 BLOG_POST_COLLECTION = 10.times.map{ |i| BlogPost.new(i+1, "post body #{i+1}", blog_authors.next) }
+
+ActionView::Template.register_template_handler :jbuilder, JbuilderHandler
+
+PARTIALS = {
+  '_partial.json.jbuilder'  => 'json.content "hello"',
+  '_blog_post.json.jbuilder' => BLOG_POST_PARTIAL
+}
 
 module Rails
   def self.cache
@@ -35,13 +42,6 @@ class JbuilderTemplateTest < ActionView::TestCase
     Rails.cache.clear
   end
 
-  def partials
-    {
-      '_partial.json.jbuilder'  => 'json.content "hello"',
-      '_blog_post.json.jbuilder' => BLOG_POST_PARTIAL
-    }
-  end
-
   # Stub out a couple of methods that'll get called from cache_fragment_name
   def view_cache_dependencies
     []
@@ -50,10 +50,15 @@ class JbuilderTemplateTest < ActionView::TestCase
     [:json]
   end
 
-  def render_jbuilder(source)
+  def render_jbuilder(source, options = {})
     @rendered = []
-    lookup_context.view_paths = [ActionView::FixtureResolver.new(partials.merge('test.json.jbuilder' => source))]
-    ActionView::Template.new(source, 'test', JbuilderHandler, :virtual_path => 'test').render(self, {}).strip
+    partials = options.fetch(:partials, PARTIALS).clone
+    partials["test.json.jbuilder"] = source
+    resolver = ActionView::FixtureResolver.new(partials)
+    lookup_context.view_paths = [resolver]
+    template = ActionView::Template.new(source, "test", JbuilderHandler, virtual_path: "test")
+    json = template.render(self, {}).strip
+    MultiJson.load(json)
   end
 
   def undef_context_methods(*names)
@@ -64,13 +69,21 @@ class JbuilderTemplateTest < ActionView::TestCase
     end
   end
 
-  def assert_collection_rendered(json, context = nil)
-    result = MultiJson.load(json)
+  def assert_collection_rendered(result, context = nil)
     result = result.fetch(context) if context
     
     assert_equal 10, result.length
     assert_equal Array, result.class
+    assert_equal 'post body 1',        result[0]['body']
+    assert_equal 'post body 2',        result[1]['body']
+    assert_equal 'post body 3',        result[2]['body']
+    assert_equal 'post body 4',        result[3]['body']
     assert_equal 'post body 5',        result[4]['body']
+    assert_equal 'post body 6',        result[5]['body']
+    assert_equal 'post body 7',        result[6]['body']
+    assert_equal 'post body 8',        result[7]['body']
+    assert_equal 'post body 9',        result[8]['body']
+    assert_equal 'post body 10',       result[9]['body']
     assert_equal 'Heinemeier Hansson', result[2]['author']['last_name']
     assert_equal 'Pavel',              result[5]['author']['first_name']
   end
@@ -84,6 +97,26 @@ class JbuilderTemplateTest < ActionView::TestCase
       end
     JBUILDER
         
+    assert_collection_rendered json
+  end
+
+  test 'renders cached array in order regardless of cache hits/misses' do
+    Rails.cache.clear
+    undef_context_methods :fragment_name_with_digest, :cache_fragment_name
+
+    # prime cache
+    render_jbuilder <<-JBUILDER
+      json.cache_collection! BLOG_POST_COLLECTION[5..6] do |blog_post|
+        json.partial! 'blog_post', :blog_post => blog_post
+      end
+    JBUILDER
+
+    json = render_jbuilder <<-JBUILDER
+      json.cache_collection! BLOG_POST_COLLECTION do |blog_post|
+        json.partial! 'blog_post', :blog_post => blog_post
+      end
+    JBUILDER
+
     assert_collection_rendered json
   end
 
@@ -141,7 +174,7 @@ class JbuilderTemplateTest < ActionView::TestCase
       end
     JBUILDER
     
-    assert_equal '[]', json
+    assert_equal [], json
   end
 
   test 'conditionally fragment caching a JSON object' do
@@ -153,21 +186,20 @@ class JbuilderTemplateTest < ActionView::TestCase
       end
     JBUILDER
 
-    json = render_jbuilder <<-JBUILDER
+    result = render_jbuilder <<-JBUILDER
       json.cache_collection_if! true, BLOG_POST_COLLECTION, key: 'cachekey' do |blog_post|
         json.test 'Miss'
       end
     JBUILDER
 
-    assert_collection_rendered json
+    assert_collection_rendered result
 
-    json = render_jbuilder <<-JBUILDER
+    result = render_jbuilder <<-JBUILDER
       json.cache_collection_if! false, BLOG_POST_COLLECTION, key: 'cachekey' do |blog_post|
         json.test 'Miss'
       end
     JBUILDER
 
-    result = MultiJson.load(json)
     assert_equal 'Miss',        result[4]['test']
   end
 end

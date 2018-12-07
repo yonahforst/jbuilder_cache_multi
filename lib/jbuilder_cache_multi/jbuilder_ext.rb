@@ -15,6 +15,9 @@ JbuilderTemplate.class_eval do
         results = ::Rails.cache.fetch_multi(*keys_to_collection_map.keys, options) do |key|
           _scope { yield keys_to_collection_map[key] }
         end
+
+        # if a hash, guarantee the order is the same as what was requested
+        results = results.slice(*keys_to_collection_map.keys) if (results.class == Hash)
       else
         results = keys_to_collection_map.map do |key, item|
           ::Rails.cache.fetch(key, options) { _scope { yield item } }
@@ -90,5 +93,4 @@ JbuilderTemplate.class_eval do
       _results
     end
   end
-
 end
