@@ -17,7 +17,7 @@ JbuilderTemplate.class_eval do
         end
 
         # if a hash, guarantee the order is the same as what was requested
-        results = results.slice(*keys_to_collection_map.keys) if (results.class == Hash)
+        results = results.slice(*keys_to_collection_map.keys) if (results.class == ::Hash)
       else
         results = keys_to_collection_map.map do |key, item|
           ::Rails.cache.fetch(key, options) { _scope { yield item } }
