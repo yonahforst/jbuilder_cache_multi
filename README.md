@@ -2,9 +2,7 @@
 
 Useful when you need to retrieve fragments for a collection of objects from the cache. This plugin gives you method called 'cache_collection!' which uses fetch_multi (new in Rails 4.1) to retrieve multiple keys in a single go.
 
-This means less queries to the cache == faster responses. If items are not found, they are writen to the cache (individualy. memcache doesn't support writing items in batch...yet).
-
-Tested with Rails 4.1 + Memcached + Dalli
+This means less queries to the cache == faster responses. If items are not found, they are writen to the cache (individualy in the case of memcache which doesn't support writing items in batch...yet). For some cache stores, multi-write is supported (Redis/Memory cache).
 
 ## Installation
 

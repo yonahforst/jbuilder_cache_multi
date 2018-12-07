@@ -15,6 +15,9 @@ JbuilderTemplate.class_eval do
         results = ::Rails.cache.fetch_multi(*keys_to_collection_map.keys, options) do |key|
           _scope { yield keys_to_collection_map[key] }
         end
+
+        # if a hash, guarantee the order is the same as what was requested
+        results = results.slice(*keys_to_collection_map.keys) if (results.class == ::Hash)
       else
         results = keys_to_collection_map.map do |key, item|
           ::Rails.cache.fetch(key, options) { _scope { yield item } }
@@ -42,26 +45,6 @@ JbuilderTemplate.class_eval do
 
   protected
 
-  ## Implementing our own version of _cache_key because jbuilder's is protected
-  def _cache_key_fetch_multi(key, options)
-    key = _fragment_name_with_digest_fetch_multi(key, options)
-    key = url_for(key).split('://', 2).last if ::Hash === key
-    ::ActiveSupport::Cache.expand_cache_key(key, :jbuilder)
-  end
-
-  def _fragment_name_with_digest_fetch_multi(key, options)
-    if @context.respond_to?(:cache_fragment_name)
-      # Current compatibility, fragment_name_with_digest is private again and cache_fragment_name
-      # should be used instead.
-      @context.cache_fragment_name(key, options.slice(:skip_digest, :virtual_path))
-    elsif @context.respond_to?(:fragment_name_with_digest)
-      # Backwards compatibility for period of time when fragment_name_with_digest was made public.
-      @context.fragment_name_with_digest(key)
-    else
-      key
-    end
-  end
-
   def _keys_to_collection_map(collection, options)
     key = options.delete(:key)
 
@@ -74,21 +57,17 @@ JbuilderTemplate.class_eval do
           else
             item
           end
-      result[_cache_key_fetch_multi(cache_key, options)] = item
+      result[_cache_key(cache_key, options)] = item
       result
     end
   end
 
   def _process_collection_results(results)
-    _results = results.class == Hash ? results.values : results
-    #support pre 2.0 versions of jbuilder where merge! is still private
-    if Jbuilder.instance_methods.include? :merge!
-      merge! _results
-    elsif Jbuilder.private_instance_methods.include? :_merge
-      _merge _results
+    case results
+    when ::Hash
+      merge! results.values
     else
-      _results
+      merge! results
     end
   end
-
 end
