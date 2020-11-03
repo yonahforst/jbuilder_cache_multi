@@ -1,7 +1,7 @@
 PATH
   remote: ..
   specs:
-    jbuilder_cache_multi (0.0.3)
+    jbuilder_cache_multi (0.1.0)
       jbuilder (>= 1.5.0, < 3)
 
 GEM
@@ -22,27 +22,33 @@ GEM
       activesupport (= 3.1.12)
       builder (~> 3.0.0)
       i18n (~> 0.6)
+    activerecord (3.1.12)
+      activemodel (= 3.1.12)
+      activesupport (= 3.1.12)
+      arel (~> 2.2.3)
+      tzinfo (~> 0.3.29)
     activesupport (3.1.12)
       multi_json (~> 1.0)
-    appraisal (2.1.0)
+    appraisal (2.2.0)
       bundler
       rake
       thor (>= 0.14.0)
+    arel (2.2.3)
     builder (3.0.4)
+    concurrent-ruby (1.1.7)
     erubis (2.7.0)
     hike (1.2.3)
-    i18n (0.7.0)
+    i18n (0.9.5)
+      concurrent-ruby (~> 1.0)
     jbuilder (1.5.3)
       activesupport (>= 3.0.0)
       multi_json (>= 1.2.0)
-    json (1.8.3)
-    metaclass (0.0.4)
-    mocha (1.1.0)
-      metaclass (~> 0.0.1)
-    multi_json (1.11.2)
-    power_assert (0.2.2)
+    json (1.8.6)
+    mocha (1.11.2)
+    multi_json (1.15.0)
+    power_assert (1.2.0)
     rack (1.3.10)
-    rack-cache (1.2)
+    rack-cache (1.9.0)
       rack (>= 0.4)
     rack-mount (0.8.3)
       rack (>= 1.0.0)
@@ -57,30 +63,34 @@ GEM
       rake (>= 0.8.7)
       rdoc (~> 3.4)
       thor (~> 0.14.6)
-    rake (10.4.2)
+    rake (13.0.1)
     rdoc (3.12.2)
       json (~> 1.4)
     sprockets (2.0.5)
       hike (~> 1.2)
       rack (~> 1.0)
       tilt (~> 1.1, != 1.3.0)
-    test-unit (3.0.8)
+    sqlite3 (1.3.13)
+    test-unit (3.3.6)
       power_assert
     thor (0.14.6)
     tilt (1.4.1)
+    tzinfo (0.3.57)
 
 PLATFORMS
   ruby
 
 DEPENDENCIES
   actionpack (~> 3.1.0)
+  activerecord (~> 3.1.0)
   appraisal
   jbuilder (~> 1.5.0)
   jbuilder_cache_multi!
   mocha
   railties (~> 3.1.0)
   rake
+  sqlite3 (~> 1.3.11)
   test-unit
 
 BUNDLED WITH
-   1.14.6
+   1.17.3

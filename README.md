@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/quorak/jbuilder_cache_multi.svg?branch=master)](https://travis-ci.org/quorak/jbuilder_cache_multi)
+
 # JbuilderCacheMulti
 
 Useful when you need to retrieve fragments for a collection of objects from the cache. This plugin gives you method called 'cache_collection!' which uses fetch_multi (new in Rails 4.1) to retrieve multiple keys in a single go.
@@ -68,6 +70,28 @@ You can also conditionally cache a block by using `cache_collection_if!` like th
 	  json.partial! 'person', :person => person
 	end
 	
+### Usage with ActiveRecord::Relation
+
+Sometimes queries can be very complex and populating models from queries with many includes take
+up the majority of time. After checking the cache, it is than obvious populating all these models was not
+necessary as we have a hit. Why not checking the cache after just using a simple query to build the cache-key
+and only fire the complex query for those models, that do not exist in the cache? Well this is possible.
+
+For these cases you can paste the ActiveRecord::Relation and `cache_collection!` will: 
+1. unscope all `includes` for the initial query to build all cache_key's (make sure you use `joins` for
+ statements that are use in `where`)
+2. gets the result from cache with `Rails.cache.read_multi` for existing cache_key hits
+3. gets all missed hits from the database with complex includes and all fields
+4. builds the block with all data
+5. uses `Rails.cache.write_multi` if available to populate the cache with the missed values  
+
+
+
+	json.cache_collection! Post.includes(:author) do |post|
+	  json.partial! 'post', :post => post
+	end
+
+
 ## Todo
 
 - Add support for passing a partial name as an argument (e.g. json.cache_collection! @people, partial: 'person') or maybe even just "json.cache_collection! @people" and infer the partial name from the collection...
