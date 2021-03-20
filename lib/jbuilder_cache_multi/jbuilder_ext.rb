@@ -74,11 +74,10 @@ JbuilderTemplate.class_eval do
 
     unless missing_entries.empty?
       new_cache_to_write = {}
-      missing_cache_key_arr = missing_entries.keys
-      active_record_relation.find(missing_entries.values).each_with_index do |record, index|
-        cache_key = missing_cache_key_arr[index]
+      active_record_relation.find(missing_entries.values).each do |record|
+        cache_key = cache_key_record_id_set.key(record.id)
         cache_results[cache_key] = _scope { yield record }
-        new_cache_to_write[cache_key] = cache_results[missing_cache_key_arr[index]]
+        new_cache_to_write[cache_key] = cache_results[cache_key]
       end
       if Rails.cache.respond_to? :write_multi
         ::Rails.cache.write_multi(new_cache_to_write, options)
