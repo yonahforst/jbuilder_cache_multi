@@ -44,41 +44,58 @@ JbuilderTemplate.class_eval do
   def cache_collection_for_active_relation(active_record_relation, options, &block)
     key = options[:key]
     query = active_record_relation.unscope(:includes)
+    model = query.klass
 
-    if key.is_a? Array
-      # use the fields for pluck
-      # id should alwys be first
-      query = query.pluck(:id, *key)
-      id_extractor = Proc.new { |fields| fields[0] }
-    elsif key.respond_to?(:call)
-      # if a proc is passed as key, use normal select
-      id_extractor = Proc.new { |record| record.id }
-    else
-      # nothing is passed, the cache_key method of AcriveRecord::Model will be called
-      # We only need :id and :updated_at for this
-      query = query.select(:id, :updated_at)
-      id_extractor = Proc.new { |record| record.id }
+
+    cache_key_record_id_set = {}
+    cache_results = {}
+    new_cache_to_write = {}
+    new_records = []
+
+    model.transaction(isolation: supported_isolation_level(model.connection)) do
+      if key.is_a? Array
+        # use the fields for pluck
+        # id should alwys be first
+        query = query.pluck(:id, *key)
+        id_extractor = Proc.new { |fields| fields[0] }
+      elsif key.respond_to?(:call)
+        # if a proc is passed as key, use normal select
+        id_extractor = Proc.new { |record| record.id }
+      else
+        # nothing is passed, the cache_key method of AcriveRecord::Model will be called
+        # We only need :id and :updated_at for this
+        query = query.select(:id, :updated_at)
+        id_extractor = Proc.new { |record| record.id }
+      end
+
+      cache_key_record_id_set = _keys_to_collection_map(query, options)
+
+      cache_key_record_id_set.each do |key, record_or_array|
+        # either of type ActiveRecord::Model or Array. Harmonize.
+        cache_key_record_id_set[key] = id_extractor.call(record_or_array)
+      end
+
+      cache_results = ::Rails.cache.read_multi(*cache_key_record_id_set.keys, options)
+
+      missing_entries = cache_key_record_id_set.reject do |cache_key|
+        cache_results[cache_key].present?
+      end
+
+      unless missing_entries.empty?
+        new_records = active_record_relation.find(missing_entries.values).to_a
+      end
     end
 
-    cache_key_record_id_set = _keys_to_collection_map(query, options)
-    cache_key_record_id_set.each do |key, record_or_array|
-      # either of type ActiveRecord::Model or Array. Harmonize,
-      cache_key_record_id_set[key] = id_extractor.call(record_or_array)
-    end
-
-    cache_results = ::Rails.cache.read_multi(*cache_key_record_id_set.keys, options)
-
-    missing_entries = cache_key_record_id_set.delete_if do |cache_key, cache_result|
-      cache_results[cache_key]
-    end
-
-    unless missing_entries.empty?
-      new_cache_to_write = {}
-      active_record_relation.find(missing_entries.values).each do |record|
+    unless new_records.empty?
+      new_records.each do |record|
         cache_key = cache_key_record_id_set.key(record.id)
+        raise NotImplementedError unless cache_key
         cache_results[cache_key] = _scope { yield record }
         new_cache_to_write[cache_key] = cache_results[cache_key]
       end
+    end
+
+    unless new_cache_to_write.empty?
       if Rails.cache.respond_to? :write_multi
         ::Rails.cache.write_multi(new_cache_to_write, options)
       else
@@ -105,6 +122,10 @@ JbuilderTemplate.class_eval do
   end
 
   protected
+
+  def supported_isolation_level(connection)
+    connection.supports_transaction_isolation? ? :repeatable_read : nil
+  end
 
   ## Implementing our own version of _cache_key because jbuilder's is protected
   def _cache_key_fetch_multi(key, options)
