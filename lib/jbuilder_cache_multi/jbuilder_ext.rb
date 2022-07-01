@@ -54,9 +54,11 @@ JbuilderTemplate.class_eval do
 
     model.transaction(isolation: supported_isolation_level(model.connection)) do
       if key.is_a? Array
-        # use the fields for pluck
+        # don't try to pluck strings, these are to be included verbatim in the final key
+        key_for_pluck = key.select { |k| k.is_a? Symbol }
+        # use the symbol fields for pluck
         # id should alwys be first
-        query = query.pluck(:id, *key)
+        query = query.pluck(:id, *key_for_pluck)
         id_extractor = Proc.new { |fields| fields[0] }
       elsif key.respond_to?(:call)
         # if a proc is passed as key, use normal select
