@@ -12,3 +12,5 @@ gemfile:
   - gemfiles/rails_4.0.0_jbuilder_2.0.0.gemfile
   - gemfiles/rails_4.1.0_jbuilder_1.5.0.gemfile
   - gemfiles/rails_4.1.0_jbuilder_2.0.0.gemfile
+  - gemfiles/rails_5.0.0_jbuilder_1.5.0.gemfile
+  - gemfiles/rails_5.0.0_jbuilder_2.0.0.gemfile
