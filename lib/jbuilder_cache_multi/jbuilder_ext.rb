@@ -53,7 +53,7 @@ JbuilderTemplate.class_eval do
     if @context.respond_to?(:cache_fragment_name)
       # Current compatibility, fragment_name_with_digest is private again and cache_fragment_name
       # should be used instead.
-      @context.cache_fragment_name(key, options.slice(:skip_digest, :virtual_path))
+      @context.cache_fragment_name(key, **options.slice(:skip_digest, :virtual_path))
     elsif @context.respond_to?(:fragment_name_with_digest)
       # Backwards compatibility for period of time when fragment_name_with_digest was made public.
       @context.fragment_name_with_digest(key)
